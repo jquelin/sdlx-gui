@@ -1,0 +1,6 @@
+# avoid utility files
+.build
+_build
+
+# avoid archives of this distribution
+/SDLx-GUI*
