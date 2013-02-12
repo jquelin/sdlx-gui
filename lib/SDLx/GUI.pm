@@ -1,12 +1,22 @@
-use 5.012;
-use strict;
+use 5.016;
 use warnings;
 
 package SDLx::GUI;
-# ABSTRACT:
+# ABSTRACT: Create GUI easily with SDL
 
 1;
 __END__
+
+=head1 DESCRIPTION
+
+L<SDL> is great to create nifty games, except it's cumbersome to write
+a usable GUI with it... Unfortunately, almost all games do have some
+part that needs buttons and checkboxes and stuff (think configuration
+screens).
+
+This module eases the pain, by providing a L<Tk>-like way of building a
+GUI.
+
 
 =head1 SEE ALSO
 
@@ -35,5 +45,4 @@ L<http://annocpan.org/dist/SDLx-GUI>
 L<http://cpanratings.perl.org/d/SDLx-GUI>
 
 =back
-
 
