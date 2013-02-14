@@ -8,6 +8,27 @@ use Moose;
 use MooseX::Has::Sugar;
 use MooseX::SemiAffordanceAccessor;
 
+
+# -- attributes
+
+has bg_color => ( rw, default=>0x000000FF, isa=>"Int" );
+
+has surface  => ( rw, lazy_build, isa=>"SDLx::Surface" );
+
+
+# -- methods
+
+=method draw
+
+    $widget->draw;
+
+Requestion C<$widget> to be drawn.
+
+=cut
+
+sub draw { }
+
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;
