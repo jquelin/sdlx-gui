@@ -7,12 +7,14 @@ package SDLx::GUI::Widget;
 use Moose;
 use MooseX::Has::Sugar;
 use MooseX::SemiAffordanceAccessor;
+use SDLx::Sprite;
 
 
 # -- attributes
 
-has bg_color => ( rw, default=>0x000000FF, isa=>"Int" );
+has bg_color => ( rw, default=>0xC0C0C0FF, isa=>"Int" );
 
+has parent   => ( rw, weak_ref, isa=>"SDLx::GUI::Widget" );
 has surface  => ( rw, lazy_build, isa=>"SDLx::Surface" );
 
 
@@ -22,11 +24,25 @@ has surface  => ( rw, lazy_build, isa=>"SDLx::Surface" );
 
     $widget->draw;
 
-Requestion C<$widget> to be drawn.
+Request C<$widget> to be drawn.
 
 =cut
 
 sub draw { }
+
+
+=method as_sprite
+
+    $widget->as_sprite;
+
+Return a L<SDLx::Sprite> where C<$widget> painted itself.
+
+=cut
+
+sub as_sprite {
+    my $self = shift;
+    return SDLx::Sprite->new( surface => $self->surface );
+}
 
 
 no Moose;
