@@ -1,0 +1,52 @@
+# NAME
+
+SDLx::GUI - Create GUI easily with SDL
+
+# VERSION
+
+version 0.001
+
+# DESCRIPTION
+
+[SDL](http://search.cpan.org/perldoc?SDL) is great to create nifty games, except it's cumbersome to write
+a usable GUI with it... Unfortunately, almost all games do have some
+part that needs buttons and checkboxes and stuff (think configuration
+screens).
+
+This module eases the pain, by providing a [Tk](http://search.cpan.org/perldoc?Tk)\-like way of building a
+GUI.
+
+# SEE ALSO
+
+You can find more information on this module at:
+
+- Search CPAN
+
+    [http://search.cpan.org/dist/SDLx-GUI](http://search.cpan.org/dist/SDLx-GUI)
+
+- See open / report bugs
+
+    [http://rt.cpan.org/NoAuth/Bugs.html?Dist=SDLx-GUI](http://rt.cpan.org/NoAuth/Bugs.html?Dist=SDLx-GUI)
+
+- Git repository
+
+    [http://github.com/jquelin/sdlx-gui](http://github.com/jquelin/sdlx-gui)
+
+- AnnoCPAN: Annotated CPAN documentation
+
+    [http://annocpan.org/dist/SDLx-GUI](http://annocpan.org/dist/SDLx-GUI)
+
+- CPAN Ratings
+
+    [http://cpanratings.perl.org/d/SDLx-GUI](http://cpanratings.perl.org/d/SDLx-GUI)
+
+# AUTHOR
+
+Jerome Quelin <jquelin@gmail.com>
+
+# COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2013 by Jerome Quelin.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
