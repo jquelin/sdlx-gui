@@ -20,11 +20,13 @@ my $app = SDLx::App->new(
 # create a toplevel
 my $top = SDLx::GUI::Widget::Toplevel->new( app => $app,
     bg_color=>0xFFEC8BFF );
-my $lab1 = SDLx::GUI::Widget::Label->new( text=>"foobar" );
-my $lab2 = SDLx::GUI::Widget::Label->new( text=>"blah" );
+my $i = 0;
+foreach my $side ( qw{ left top top right bottom } ) {
+    $i++;
+    my $lab = SDLx::GUI::Widget::Label->new(text=>"$i $side");
+    $top->pack( child=>$lab, side=>$side );
+}
 $top->draw;
-$top->pack( child=>$lab1, side=>"left" );
-$top->pack( child=>$lab2, side=>"top" );
 
 # run the test
 local $SIG{ALRM} = sub {
@@ -32,6 +34,6 @@ local $SIG{ALRM} = sub {
     done_testing;
     exit;
 };
-alarm 1;
+alarm 2;
 $app->run;
 

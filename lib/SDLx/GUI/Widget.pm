@@ -9,46 +9,41 @@ use MooseX::Has::Sugar;
 use MooseX::SemiAffordanceAccessor;
 use SDLx::Sprite;
 
+use SDLx::GUI::Debug qw{ debug };
+
 
 # -- attributes
 
 has bg_color => ( rw, default=>0xC0C0C0FF, isa=>"Int" );
 
 has parent   => ( rw, weak_ref, isa=>"SDLx::GUI::Widget" );
-has surface  => ( rw, lazy_build, isa=>"SDLx::Surface" );
+
+
+# -- initialization
+
+sub BUILD    { debug( "label created: $_[0]\n" ); }
+sub DEMOLISH { debug( "label destroyed: $_[0]\n" ); }
 
 
 # -- methods
 
 =method draw
 
-    $widget->draw;
+    $widget->draw( $surface );
 
-Request C<$widget> to be drawn.
-
-=cut
-
-sub draw { }
-
-
-=method as_sprite
-
-    $widget->as_sprite;
-
-Return a L<SDLx::Sprite> where C<$widget> painted itself.
+Request C<$widget> to be drawn on C<$surface>.
 
 =cut
 
-sub as_sprite {
-    my $self = shift;
-    return SDLx::Sprite->new( surface => $self->surface );
-}
+# method to be implemented in subclasses.
 
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
 1;
 __END__
+
+=for Pod::Coverage BUILD DEMOLISH
 
 =head1 DESCRIPTION
 

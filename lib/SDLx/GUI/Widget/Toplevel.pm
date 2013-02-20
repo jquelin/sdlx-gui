@@ -10,11 +10,15 @@ use MooseX::Has::Sugar;
 use MooseX::SemiAffordanceAccessor;
 use SDL::Video;
 use SDLx::Rect;
+use SDLx::Surface;
+
+use SDLx::GUI::Debug qw{ debug };
+use SDLx::GUI::Pack;
 
 extends qw{ SDLx::GUI::Widget };
 
 
-# -- attribute
+# -- attributes
 
 =attr app
 
@@ -26,102 +30,169 @@ Mandatory, but storead as a weak reference.
 has app => ( ro, required, weak_ref, isa=>"SDLx::App" );
 
 
-has _cavity => ( rw, lazy_build, isa=>"SDLx::Rect" );
+has _packs => (
+    ro, auto_deref,
+    traits  => ['Array'],
+    isa     => 'ArrayRef[SDLx::GUI::Pack]',
+    default => sub { [] },
+    handles => {
+        add_pack => 'push',
+    },
+);
 
-
-# -- initialization
-
-sub BUILD {
-    my $self = shift;
-    # make sure we can blit on the surface
-    SDL::Video::set_alpha( $self->app, SDL_SRCCOLORKEY, 0 );
-}
-
-sub _build__cavity {
-    my $self = shift;
-    my $app  = $self->app;
-    return SDLx::Rect->new( 0, 0, $app->w, $app->h );
-}
-
-sub _build_surface {
-    my $self = shift;
-    my ($w, $h) = map { ($_->w,$_->h) } $self->app;
-    return SDLx::Surface->new( width=>$w,height=>$h );
-}
 
 
 # -- public methods
 
-override draw => sub {
-    my $self = shift;
-    my $surface = $self->surface;
-    $surface->draw_rect( undef, $self->bg_color );
-    $surface->blit( $self->app, [0,0,$surface->w,$surface->h] );
-};
+=method pack
+
+    $toplevel->pack( %opts );
+
+Request a new child to be packed on C<$toplevel>. C<%opts> is used to
+create a new L<SDLx::GUI::Pack> object - refer to this module for more
+information on supported attributes.
+
+=cut
 
 sub pack {
     my ($self, %opts) = @_;
-    my $cavity = $self->_cavity;
 
-    $opts{child}->set_parent( $self );
-    my $sprite = $opts{child}->as_sprite;
-    my $childw = $sprite->w;
-    my $childh = $sprite->h;
+    my $pack = SDLx::GUI::Pack->new(%opts);
+    $pack->child->set_parent( $self );
+    $self->add_pack( $pack );
+    $self->recompute;
+}
 
-    $opts{side} //= "top";
 
-    my ($px, $py, $pw, $ph);
-    given ( $opts{side} ) {
-        when ( "top" ) {
-            $pw = $cavity->w;
-            $ph = $childh;
-            $px = $cavity->x;
-            $py = $cavity->y;
-            $cavity = SDLx::Rect->new(
-                $cavity->x, $cavity->y + $ph,
-                $cavity->w, $cavity->h - $ph,
-            );
+=method recompute
+
+    $toplevel->recompute;
+
+Request C<$toplevel> to recompute the size of all its children,
+recursively. Refer to the packer algorithm in L<SDLx::GUI::Pack> for
+more information. Note that this method doesn't request C<$toplevel> to
+be redrawn!
+
+=cut
+
+sub recompute {
+    my $self = shift;
+    my $app  = $self->app;
+
+    debug( "recomputing $self\n" );
+    my $cavity = SDLx::Rect->new( 0, 0, $app->w, $app->h );
+    debug( "cavity is " . _rects($cavity) . "\n" );
+
+    foreach my $pack ( $self->_packs ) {
+        my $child = $pack->child;
+        my ($childw, $childh) = $child->_wanted_size;
+
+        debug( "child $child wants [$childw,$childh] at ".$pack->side. "\n" );
+        my ($px, $py, $pw, $ph);
+        given ( $pack->side ) {
+            when ( "top" ) {
+                $pw = $cavity->w;
+                $ph = $childh;
+                $px = $cavity->x;
+                $py = $cavity->y;
+                $cavity = SDLx::Rect->new(
+                    $cavity->x, $cavity->y + $ph,
+                    $cavity->w, $cavity->h - $ph,
+                );
+            }
+            when ( "bottom" ) {
+                $pw = $cavity->w;
+                $ph = $childh;
+                $px = $cavity->x;
+                $py = $cavity->y + $cavity->h - $childh;
+                $cavity = SDLx::Rect->new(
+                    $cavity->x, $cavity->y,
+                    $cavity->w, $cavity->h - $ph,
+                );
+            }
+            when ( "left" ) {
+                $pw = $childw;
+                $ph = $cavity->h;
+                $px = $cavity->x;
+                $py = $cavity->y;
+                $cavity = SDLx::Rect->new(
+                    $cavity->x + $pw, $cavity->y,
+                    $cavity->w - $pw, $cavity->h,
+                );
+            }
+            when ( "right" ) {
+                $pw = $childw;
+                $ph = $cavity->h;
+                $px = $cavity->x + $cavity->w - $childw;
+                $py = $cavity->y;
+                $cavity = SDLx::Rect->new(
+                    $cavity->x,       $cavity->y,
+                    $cavity->w - $pw, $cavity->h,
+                );
+            }
+            default {
+                croak "uh? should not get there";
+            }
         }
-        when ( "bottom" ) {
-            $pw = $cavity->w;
-            $ph = $childh;
-            $px = $cavity->x;
-            $py = $cavity->y + $cavity->h - $childh;
-            $cavity = SDLx::Rect->new(
-                $cavity->x, $cavity->y,
-                $cavity->w, $cavity->h - $ph,
-            );
-        }
-        when ( "left" ) {
-            $pw = $childw;
-            $ph = $cavity->h;
-            $px = $cavity->x;
-            $py = $cavity->y;
-            $cavity = SDLx::Rect->new(
-                $cavity->x + $pw, $cavity->y,
-                $cavity->w - $ph, $cavity->h,
-            );
-        }
-        when ( "right" ) {
-            $pw = $childw;
-            $ph = $cavity->h;
-            $px = $cavity->x + $cavity->w - $childw;
-            $py = $cavity->y;
-            $cavity = SDLx::Rect->new(
-                $cavity->x,       $cavity->y,
-                $cavity->w - $pw, $cavity->h,
-            );
-        }
-        default {
-            croak "'side' option must be one of 'top', 'bottom', 'left' or 'right'";
-        }
+        $pack->set_parcel( SDLx::Rect->new($px,$py,$pw,$ph) );
+        $pack->set_slave_dims( SDLx::Rect->new($px,$py,$childw,$childh) );
+        debug( "cavity is " . _rects($cavity) . "\n" );
     }
+}
 
-    $sprite->draw_xy( $self->surface, $px, $py );
-    $self->_set_cavity( $cavity );
-    $self->surface->blit( $self->app );
+
+=method draw
+
+    $top->draw;
+
+Request C<$top> to be redrawn on the main application window, along with
+all its children.
+
+=cut
+
+sub draw {
+    my $self = shift;
+
+    debug( "redrawing $self\n" );
+    $self->app->draw_rect( undef, $self->bg_color );
+
+    foreach my $pack ( $self->_packs ) {
+        my $parcel     = $pack->parcel;
+        my $slave_dims = $pack->slave_dims;
+        my $surface = SDLx::Surface->new(
+            width  => $slave_dims->w,
+            height => $slave_dims->h
+        );
+        debug( "child " . $pack->child . " to be redrawn\n" );
+        debug( "parcel     = " . _rects($parcel) );
+        debug( "slave_dims = " . _rects($slave_dims) );
+        $pack->child->draw( $surface );
+        my $sprite = SDLx::Sprite->new(
+            surface => $surface,
+            x       => $parcel->x,
+            y       => $parcel->y,
+            ( $pack->has_clip ? ( clip => $pack->clip ) : () ),
+        );
+        $sprite->draw( $self->app );
+    }
+    debug( "completed redrawing of $self\n" );
     $self->app->update;
 }
+
+
+# -- private functions
+
+#
+# my $string = _rects( $rect );
+#
+# Return a string with $rect main info: "[x,y,w,h]".
+#
+sub _rects {
+    my $r = shift;
+    return "[" . join(",",$r->x, $r->y, $r->w, $r->h) . "]";
+}
+
+
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

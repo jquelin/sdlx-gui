@@ -11,6 +11,8 @@ use SDL::Video;
 use SDLx::Surface;
 use SDLx::Text;
 
+use SDLx::GUI::Debug qw{ debug };
+
 extends qw{ SDLx::GUI::Widget };
 
 
@@ -21,17 +23,6 @@ has _sdlxtext => ( ro, lazy_build, isa=>"SDLx::Text" );
 
 
 # -- initialization
-
-sub _build_surface {
-    my $self = shift;
-
-    my $sdlxt = $self->_sdlxtext;
-    my $surface =  SDLx::Surface->new( width=>$sdlxt->w,
-        height=>$sdlxt->h );
-    $surface->draw_rect( undef, $self->bg_color );
-    $sdlxt->write_to( $surface );
-    return $surface;
-}
 
 sub _build__sdlxtext {
     my $self = shift;
@@ -46,6 +37,23 @@ sub _build__sdlxtext {
 
 # -- public methods
 
+sub draw {
+    my ($self, $surface) = @_;
+    my $sdlxt = $self->_sdlxtext;
+
+    $surface->draw_rect( undef, $self->bg_color );
+    $sdlxt->write_to( $surface );
+    $surface->update;
+}
+
+
+# -- private methods
+
+sub _wanted_size {
+    my $self = shift;
+    my $sdlxt = $self->_sdlxtext;
+    return $sdlxt->w, $sdlxt->h;
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;
