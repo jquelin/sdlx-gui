@@ -30,13 +30,14 @@ Mandatory, but storead as a weak reference.
 has app => ( ro, required, weak_ref, isa=>"SDLx::App" );
 
 
-has _packs => (
+# A list of widgets created inside the toplevel.
+has _children => (
     ro, auto_deref,
     traits  => ['Array'],
-    isa     => 'ArrayRef[SDLx::GUI::Pack]',
+    isa     => 'ArrayRef[SDLx::GUI::Widget]',
     default => sub { [] },
     handles => {
-        add_pack => 'push',
+        _add_child  => 'push',
     },
 );
 
@@ -44,38 +45,77 @@ has _packs => (
 
 # -- public methods
 
-=method pack
+=method label
 
-    $toplevel->pack( %opts );
+    my $label = $toplevel->label( %opts );
 
-Request a new child to be packed on C<$toplevel>. C<%opts> is used to
-create a new L<SDLx::GUI::Pack> object - refer to this module for more
-information on supported attributes.
+Return a new label (a L<SDLx::GUI::Widget::Label> object) created within
+the C<$toplevel>.
 
 =cut
 
-sub pack {
-    my ($self, %opts) = @_;
-
-    my $pack = SDLx::GUI::Pack->new(%opts);
-    $pack->child->set_parent( $self );
-    $self->add_pack( $pack );
-    $self->recompute;
+sub label {
+    my $self = shift;
+    require SDLx::GUI::Widget::Label;
+    my $label = SDLx::GUI::Widget::Label->new( parent=>$self, @_);
+    $self->_add_child( $label );
+    return $label;
 }
 
 
-=method recompute
 
-    $toplevel->recompute;
 
-Request C<$toplevel> to recompute the size of all its children,
-recursively. Refer to the packer algorithm in L<SDLx::GUI::Pack> for
-more information. Note that this method doesn't request C<$toplevel> to
-be redrawn!
+=method draw
+
+    $top->draw;
+
+Request C<$top> to be redrawn on the main application window, along with
+all its children.
 
 =cut
 
-sub recompute {
+sub draw {
+    my $self = shift;
+
+    debug( "redrawing $self\n" );
+    $self->app->draw_rect( undef, $self->bg_color );
+
+    foreach my $child ( grep { $_->is_packed } $self->_children ) {
+        my $pack       = $child->_pack_info;
+        my $parcel     = $pack->parcel;
+        my $slave_dims = $pack->slave_dims;
+        my $surface = SDLx::Surface->new(
+            width  => $slave_dims->w,
+            height => $slave_dims->h
+        );
+        debug( "child $child to be redrawn\n" );
+        debug( "parcel     = " . _rects($parcel) );
+        debug( "slave_dims = " . _rects($slave_dims) );
+        $child->_draw( $surface );
+        my $sprite = SDLx::Sprite->new(
+            surface => $surface,
+            x       => $parcel->x,
+            y       => $parcel->y,
+            ( $pack->has_clip ? ( clip => $pack->clip ) : () ),
+        );
+        $sprite->draw( $self->app );
+    }
+    debug( "completed redrawing of $self\n" );
+    $self->app->update;
+}
+
+
+# -- private functions
+
+#
+#    $toplevel->_recompute;
+#
+# Request C<$toplevel> to recompute the size of all its children,
+# recursively. Refer to the packer algorithm in L<SDLx::GUI::Pack> for
+# more information. Note that this method doesn't request C<$toplevel>
+# to be redrawn!
+#
+sub _recompute {
     my $self = shift;
     my $app  = $self->app;
 
@@ -83,8 +123,9 @@ sub recompute {
     my $cavity = SDLx::Rect->new( 0, 0, $app->w, $app->h );
     debug( "cavity is " . _rects($cavity) . "\n" );
 
-    foreach my $pack ( $self->_packs ) {
-        my $child = $pack->child;
+    foreach my $child ( grep { $_->is_packed } $self->_children ) {
+        my $pack = $child->_pack_info;
+        debug( "checking $child\n" );
         my ($childw, $childh) = $child->_wanted_size;
 
         debug( "child $child wants [$childw,$childh] at ".$pack->side. "\n" );
@@ -141,47 +182,6 @@ sub recompute {
 }
 
 
-=method draw
-
-    $top->draw;
-
-Request C<$top> to be redrawn on the main application window, along with
-all its children.
-
-=cut
-
-sub draw {
-    my $self = shift;
-
-    debug( "redrawing $self\n" );
-    $self->app->draw_rect( undef, $self->bg_color );
-
-    foreach my $pack ( $self->_packs ) {
-        my $parcel     = $pack->parcel;
-        my $slave_dims = $pack->slave_dims;
-        my $surface = SDLx::Surface->new(
-            width  => $slave_dims->w,
-            height => $slave_dims->h
-        );
-        debug( "child " . $pack->child . " to be redrawn\n" );
-        debug( "parcel     = " . _rects($parcel) );
-        debug( "slave_dims = " . _rects($slave_dims) );
-        $pack->child->draw( $surface );
-        my $sprite = SDLx::Sprite->new(
-            surface => $surface,
-            x       => $parcel->x,
-            y       => $parcel->y,
-            ( $pack->has_clip ? ( clip => $pack->clip ) : () ),
-        );
-        $sprite->draw( $self->app );
-    }
-    debug( "completed redrawing of $self\n" );
-    $self->app->update;
-}
-
-
-# -- private functions
-
 #
 # my $string = _rects( $rect );
 #
@@ -191,7 +191,6 @@ sub _rects {
     my $r = shift;
     return "[" . join(",",$r->x, $r->y, $r->w, $r->h) . "]";
 }
-
 
 
 no Moose;

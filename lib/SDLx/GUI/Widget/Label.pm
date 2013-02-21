@@ -37,7 +37,10 @@ sub _build__sdlxtext {
 
 # -- public methods
 
-sub draw {
+
+# -- private methods
+
+sub _draw {
     my ($self, $surface) = @_;
     my $sdlxt = $self->_sdlxtext;
 
@@ -46,8 +49,6 @@ sub draw {
     $surface->update;
 }
 
-
-# -- private methods
 
 sub _wanted_size {
     my $self = shift;

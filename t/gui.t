@@ -5,7 +5,6 @@ use warnings;
 
 use Test::More;
 use SDLx::App;
-use SDLx::GUI::Widget::Label;
 use SDLx::GUI::Widget::Toplevel;
 
 # main sdl application
@@ -23,8 +22,8 @@ my $top = SDLx::GUI::Widget::Toplevel->new( app => $app,
 my $i = 0;
 foreach my $side ( qw{ left top top right bottom } ) {
     $i++;
-    my $lab = SDLx::GUI::Widget::Label->new(text=>"$i $side");
-    $top->pack( child=>$lab, side=>$side );
+    my $lab = $top->label(text=>"$i $side");
+    $lab->pack( side=>$side );
 }
 $top->draw;
 

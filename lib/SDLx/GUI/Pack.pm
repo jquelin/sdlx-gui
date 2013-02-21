@@ -14,14 +14,6 @@ use SDLx::GUI::Types;
 
 # -- attributes
 
-=attr child
-
-The widget to be packed (a C<SDLx::GUI::Widget> object) - required.
-
-=cut
-
-has child => ( ro, required, isa=>"SDLx::GUI::Widget" );
-
 =attr side
 
 On which side to pack the widget - see C<PackSide> in
