@@ -60,4 +60,5 @@ __END__
 
 =head1 DESCRIPTION
 
-This class defines objects keeping track of packed widgets.
+This class defines objects keeping track of packing options for widgets.
+

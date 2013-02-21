@@ -21,7 +21,8 @@ my $top = toplevel( app => $app, bg_color=>0xFFEC8BFF );
 my $i = 0;
 foreach my $side ( qw{ left top top right bottom } ) {
     $i++;
-    my $lab = $top->label(text=>"$i $side");
+    my $size = int(rand()*16) + 16;
+    my $lab = $top->label(text=>"$i $side ($size)", size=>$size);
     $lab->pack( side=>$side );
 }
 $top->draw;

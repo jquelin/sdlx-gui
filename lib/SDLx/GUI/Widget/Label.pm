@@ -18,7 +18,21 @@ extends qw{ SDLx::GUI::Widget };
 
 # -- attributes
 
+=attr text
+
+The text to be displayed on the label (a string).
+
+=attr size
+
+The font size to use to display the string.
+
+=cut
+
 has text => ( rw, required, isa=>"Str" );
+has size => ( rw, default=>18, isa=>"Int" );
+
+
+# A L<SDLx::Text> object that will be used to draw the label text.
 has _sdlxtext => ( ro, lazy_build, isa=>"SDLx::Text" );
 
 
@@ -27,7 +41,7 @@ has _sdlxtext => ( ro, lazy_build, isa=>"SDLx::Text" );
 sub _build__sdlxtext {
     my $self = shift;
     my $text = SDLx::Text->new(
-        size    => 18,
+        size    => $self->size,
         h_align => 'left',
         text    => $self->text,
     );
