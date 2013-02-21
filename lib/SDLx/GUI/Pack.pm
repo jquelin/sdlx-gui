@@ -24,25 +24,24 @@ L<SDLx::GUI::Types>. Defaults to C<top>.
 has side  => ( ro, isa=>"PackSide", default=>"top" );
 
 
-=attr parcel
-
-The parcel devoted to the pack (a L<SDLx::Rect> object). See the
-packer algorithm for more information on the parcel.
-
-=attr slave_dims
-
-The dimensions that the child should fill (a L<SDLx::Rect> object).
-See the packer algorithm for more information on the slave dimensions.
-
-=attr clip
-
-A L<SDLx::Rect> used to clip a packed child if there isn't enough place.
-
-=cut
-
-has parcel     => (rw, isa=>"SDLx::Rect" );
-has slave_dims => (rw, isa=>"SDLx::Rect" );
-has clip       => (rw, isa=>"SDLx::Rect", predicate=>"has_clip" );
+#
+#   _parcel
+#
+# The parcel devoted to the pack (a L<SDLx::Rect> object). See the
+# packer algorithm for more information on the parcel.
+#
+#   _slave_dims
+#
+# The dimensions that the child should fill (a L<SDLx::Rect> object).
+# See the packer algorithm for more information on the slave dimensions.
+#
+#   _clip
+#
+# A L<SDLx::Rect> used to clip a packed child if there isn't enough place.
+#
+has _parcel     => (rw, isa=>"SDLx::Rect" );
+has _slave_dims => (rw, isa=>"SDLx::Rect" );
+has _clip       => (rw, isa=>"SDLx::Rect", predicate=>"has_clip" );
 
 
 # -- initialization

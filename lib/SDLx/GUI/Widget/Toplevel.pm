@@ -82,8 +82,8 @@ sub draw {
 
     foreach my $child ( grep { $_->is_packed } $self->_children ) {
         my $pack       = $child->_pack_info;
-        my $parcel     = $pack->parcel;
-        my $slave_dims = $pack->slave_dims;
+        my $parcel     = $pack->_parcel;
+        my $slave_dims = $pack->_slave_dims;
         my $surface = SDLx::Surface->new(
             width  => $slave_dims->w,
             height => $slave_dims->h
@@ -175,8 +175,8 @@ sub _recompute {
                 croak "uh? should not get there";
             }
         }
-        $pack->set_parcel( SDLx::Rect->new($px,$py,$pw,$ph) );
-        $pack->set_slave_dims( SDLx::Rect->new($px,$py,$childw,$childh) );
+        $pack->_set_parcel( SDLx::Rect->new($px,$py,$pw,$ph) );
+        $pack->_set_slave_dims( SDLx::Rect->new($px,$py,$childw,$childh) );
         debug( "cavity is " . _rects($cavity) . "\n" );
     }
 }

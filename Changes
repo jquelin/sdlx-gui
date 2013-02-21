@@ -1,4 +1,6 @@
 Changelog for SDLx-GUI
 
 {{$NEXT}}
-  -
+  - first revision
+  - new widgets: toplevel, label
+  - new pack options: side
