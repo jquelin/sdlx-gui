@@ -5,7 +5,7 @@ use warnings;
 
 use Test::More;
 use SDLx::App;
-use SDLx::GUI::Widget::Toplevel;
+use SDLx::GUI;
 
 # main sdl application
 my $app = SDLx::App->new(
@@ -17,8 +17,7 @@ my $app = SDLx::App->new(
 );
 
 # create a toplevel
-my $top = SDLx::GUI::Widget::Toplevel->new( app => $app,
-    bg_color=>0xFFEC8BFF );
+my $top = toplevel( app => $app, bg_color=>0xFFEC8BFF );
 my $i = 0;
 foreach my $side ( qw{ left top top right bottom } ) {
     $i++;

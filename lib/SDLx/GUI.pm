@@ -4,8 +4,40 @@ use warnings;
 package SDLx::GUI;
 # ABSTRACT: Create GUI easily with SDL
 
+use Exporter::Lite;
+
+use SDLx::GUI::Widget::Toplevel;
+
+our @EXPORT = qw{ toplevel };
+
+
+# -- public functions
+
+=method toplevel
+
+    my $top = toplevel( %options );
+
+Return a new toplevel widget (a L<SDLx::GUI::Widget::Toplevel> object).
+Refer to this class for more information on accepted C<%options>.
+
+=cut
+
+sub toplevel {
+    return SDLx::GUI::Widget::Toplevel->new( @_ );
+}
+
+
 1;
 __END__
+
+=head1 SYNOPSIS
+
+    use SDLx::App;
+    use SDLx::GUI;
+    my $app = SDLx::App->new( ... );
+    my $top = toplevel( app=>$app );
+    $top->label( text=>"hello, world!" )->pack;
+
 
 =head1 DESCRIPTION
 
