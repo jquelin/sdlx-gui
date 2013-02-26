@@ -34,8 +34,8 @@ has _pack_info => ( rw, isa=>"SDLx::GUI::Pack", predicate=>"is_packed" );
 
 # -- initialization
 
-sub BUILD    { debug( "label created: $_[0]\n" ); }
-sub DEMOLISH { debug( "label destroyed: $_[0]\n" ); }
+sub BUILD    { debug( "widget created: $_[0]\n" ); }
+sub DEMOLISH { debug( "widget destroyed: $_[0]\n" ); }
 
 
 # -- public methods
@@ -57,6 +57,20 @@ sub pack {
     $self->parent->_recompute;
 }
 
+
+=method is_visible
+
+    my $bool = $widget->is_visible;
+
+Return true if C<$widget> is currently visible, ie if it is packed and
+there's enough place on the screen for it to be shown.
+
+=cut
+
+sub is_visible {
+    my $self = shift;
+    return $self->_pack_info && $self->_pack_info->_slave_dims;
+}
 
 # -- private methods
 
