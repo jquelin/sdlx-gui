@@ -7,6 +7,7 @@ package SDLx::GUI::Widget::Label;
 use Moose;
 use MooseX::Has::Sugar;
 use MooseX::SemiAffordanceAccessor;
+use SDL::Color;
 use SDL::Video;
 use SDLx::Surface;
 use SDLx::Text;
@@ -28,6 +29,7 @@ The font size to use to display the string.
 
 =cut
 
+has fg_color => ( rw, lazy_build, isa=>"SDL::Color" );
 has text => ( rw, required, isa=>"Str" );
 has size => ( rw, default=>18, isa=>"Int" );
 
@@ -44,9 +46,12 @@ sub _build__sdlxtext {
         size    => $self->size,
         h_align => 'left',
         text    => $self->text,
+        color   => $self->fg_color,
     );
     return $text;
 }
+
+sub _build_fg_color { SDL::Color->new(0,0,0); }
 
 
 # -- public methods
