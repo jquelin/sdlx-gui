@@ -1,6 +1,11 @@
 Changelog for SDLx-GUI
 
 {{$NEXT}}
+
+0.001     2013-02-26 15:15:46 Europe/Paris
   - first revision
-  - new widgets: toplevel, label
-  - new pack options: side
+  - widgets: toplevel, label, button
+  - widget options: bg_color
+  - label options: text, size, fg_color
+  - button options: text, size, fg_color
+  - pack options: side
