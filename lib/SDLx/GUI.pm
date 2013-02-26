@@ -36,7 +36,7 @@ __END__
     use SDLx::GUI;
     my $app = SDLx::App->new( ... );
     my $top = toplevel( app=>$app );
-    $top->label( text=>"hello, world!" )->pack;
+    $top->Label( text=>"hello, world!" )->pack;
 
 
 =head1 DESCRIPTION

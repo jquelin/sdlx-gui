@@ -18,12 +18,12 @@ my $app = SDLx::App->new(
 
 # create a toplevel
 my $top = toplevel( app => $app );
-$top->button( text=>"click" )->pack( side=>'bottom' );
+$top->Button( text=>"click" )->pack( side=>'bottom' );
 my $i = 0;
 foreach my $side ( qw{ left top top right bottom } ) {
     $i++;
     my $size = int(rand()*16) + 16;
-    my $lab = $top->label(text=>"$i $side ($size)", size=>$size);
+    my $lab = $top->Label(text=>"$i $side ($size)", size=>$size);
     $lab->pack( side=>$side );
 }
 $top->draw;

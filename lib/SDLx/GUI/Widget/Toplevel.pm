@@ -47,7 +47,6 @@ has _children => (
 has _mouse_over_widget => ( rw, lazy_build, isa=>"SDLx::GUI::Widget" );
 
 
-
 # -- initialization
 
 sub BUILD {
@@ -60,32 +59,20 @@ sub _build__mouse_over_widget { return $_[0] }
 
 # -- public methods
 
-=method label
-
-    my $label = $toplevel->label( %opts );
-
-Return a new label (a L<SDLx::GUI::Widget::Label> object) created within
-the C<$toplevel>.
-
-=cut
-
-sub label {
+our $AUTOLOAD;
+sub AUTOLOAD {
     my $self = shift;
-    require SDLx::GUI::Widget::Label;
-    my $label = SDLx::GUI::Widget::Label->new( parent=>$self, @_);
-    $self->_add_child( $label );
-    return $label;
+
+    # Remove qualifier from original method name...
+    my $called = $AUTOLOAD =~ s/.*:://r;
+    my $class  = "SDLx::GUI::Widget::$called";
+
+    eval "require $class";
+    croak "No such method $called\n" if $@;
+    my $widget = $class->new( parent=>$self, @_);
+    $self->_add_child( $widget );
+    return $widget;
 }
-
-sub button {
-    my $self = shift;
-    require SDLx::GUI::Widget::Button;
-    my $button = SDLx::GUI::Widget::Button->new( parent=>$self, @_);
-    $self->_add_child( $button );
-    return $button;
-}
-
-
 
 
 =method draw
@@ -278,9 +265,23 @@ __PACKAGE__->meta->make_immutable;
 1;
 __END__
 
+=for Pod::Coverage AUTOLOAD ^SDL_.*$
+
 =head1 DESCRIPTION
 
 This package provides a widget that will cover the whole application
 screen. It should be used as the base widget upon which all the other
 ones will be drawn.
 
+
+=head2 Widget creation
+
+One can call methods named after the widget class to be created on the
+toplevel. It will try to load said class and return the wanted widget.
+For example:
+
+    my $button = $toplevel->Button( ... );
+    my $label  = $toplevel->Label( ... );
+
+will return a L<SDLx::GUI::Widget::Label> and a
+L<SDLx::GUI::Widget::Button> object.
