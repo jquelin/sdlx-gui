@@ -7,6 +7,7 @@ package SDLx::GUI::Widget;
 use Moose;
 use MooseX::Has::Sugar;
 use MooseX::SemiAffordanceAccessor;
+use SDL::Color;
 use SDLx::Sprite;
 
 use SDLx::GUI::Debug qw{ debug };
@@ -14,7 +15,7 @@ use SDLx::GUI::Debug qw{ debug };
 
 # -- attributes
 
-has bg_color => ( rw, default=>0xC0C0C0FF, isa=>"Int" );
+has bg_color => ( rw, lazy_build, isa=>"SDL::Color" );
 
 
 =attr parent
@@ -36,7 +37,7 @@ has _pack_info => ( rw, isa=>"SDLx::GUI::Pack", predicate=>"is_packed" );
 
 sub BUILD    { debug( "widget created: $_[0]\n" ); }
 sub DEMOLISH { debug( "widget destroyed: $_[0]\n" ); }
-
+sub _build_bg_color { SDL::Color->new(192,192,192); }
 
 # -- public methods
 

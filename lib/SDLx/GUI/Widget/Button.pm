@@ -36,7 +36,7 @@ has size => ( rw, default=>18, isa=>"Int" );
 
 # A L<SDLx::Text> object that will be used to draw the button text.
 has _sdlxtext => ( ro, lazy_build, isa=>"SDLx::Text" );
-has _border_color => ( rw, default=>0x000000FF, isa=>"Int" );
+has _border_color => ( rw, lazy_build, isa=>"SDL::Color" );
 
 
 # -- initialization
@@ -53,6 +53,7 @@ sub _build__sdlxtext {
 }
 
 sub _build_fg_color { SDL::Color->new(0,0,0); }
+sub _build__border_color { SDL::Color->new(0,0,0); }
 
 
 # -- public methods
@@ -80,13 +81,13 @@ sub _on_mouse_up {
 
 sub _on_mouse_enter {
     my ($self, $event) = @_;
-    $self->_set_border_color( 0xFFFFFFFF );
+    $self->_set_border_color( SDL::Color->new(255,255,255) );
     $self->parent->draw;
 }
 
 sub _on_mouse_leave {
     my ($self, $event) = @_;
-    $self->_set_border_color( 0x000000FF );
+    $self->_set_border_color( SDL::Color->new(0,0,0) );
     $self->parent->draw;
 }
 
