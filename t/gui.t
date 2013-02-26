@@ -18,6 +18,7 @@ my $app = SDLx::App->new(
 
 # create a toplevel
 my $top = toplevel( app => $app, bg_color=>0xFFEC8BFF );
+$top->button( text=>"click" )->pack( side=>'bottom' );
 my $i = 0;
 foreach my $side ( qw{ left top top right bottom } ) {
     $i++;
@@ -33,6 +34,6 @@ local $SIG{ALRM} = sub {
     done_testing;
     exit;
 };
-alarm 2;
+#alarm 2;
 $app->run;
 
