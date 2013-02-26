@@ -39,9 +39,9 @@ has side  => ( ro, isa=>"PackSide", default=>"top" );
 #
 # A L<SDLx::Rect> used to clip a packed child if there isn't enough place.
 #
-has _parcel     => (rw, isa=>"SDLx::Rect" );
-has _slave_dims => (rw, isa=>"SDLx::Rect" );
-has _clip       => (rw, isa=>"SDLx::Rect", predicate=>"has_clip" );
+has _parcel     => (rw, isa=>"SDLx::Rect", clearer=>"_clear_parcel" );
+has _slave_dims => (rw, isa=>"SDLx::Rect", clearer=>"_clear_slave_dims" );
+has _clip       => (rw, isa=>"SDLx::Rect", clearer=>"_clear_clip" );
 
 
 # -- initialization

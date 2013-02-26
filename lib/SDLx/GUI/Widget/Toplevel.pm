@@ -4,10 +4,12 @@ use warnings;
 package SDLx::GUI::Widget::Toplevel;
 # ABSTRACT: Toplevel widget for whole app screen
 
-use Carp        qw{ croak };
+use Carp            qw{ croak };
+use List::AllUtils  qw{ first };
 use Moose;
 use MooseX::Has::Sugar;
 use MooseX::SemiAffordanceAccessor;
+use SDL::Event;
 use SDL::Video;
 use SDLx::Rect;
 use SDLx::Surface;
@@ -41,6 +43,19 @@ has _children => (
     },
 );
 
+# The widget where the mouse is currently over.
+has _mouse_over_widget => ( rw, lazy_build, isa=>"SDLx::GUI::Widget" );
+
+
+
+# -- initialization
+
+sub BUILD {
+    my $self = shift;
+    $self->app->add_event_handler( sub { $self->_handle_event($_[0]) } );
+}
+
+sub _build__mouse_over_widget { return $_[0] }
 
 
 # -- public methods
@@ -60,6 +75,14 @@ sub label {
     my $label = SDLx::GUI::Widget::Label->new( parent=>$self, @_);
     $self->_add_child( $label );
     return $label;
+}
+
+sub button {
+    my $self = shift;
+    require SDLx::GUI::Widget::Button;
+    my $button = SDLx::GUI::Widget::Button->new( parent=>$self, @_);
+    $self->_add_child( $button );
+    return $button;
 }
 
 
@@ -96,7 +119,7 @@ sub draw {
             surface => $surface,
             x       => $parcel->x,
             y       => $parcel->y,
-            ( $pack->has_clip ? ( clip => $pack->clip ) : () ),
+            ( $pack->_clip ? ( clip => $pack->_clip ) : () ),
         );
         $sprite->draw( $self->app );
     }
@@ -105,7 +128,50 @@ sub draw {
 }
 
 
-# -- private functions
+# -- private methods
+
+sub _handle_event {
+    my ($self, $event) = @_;
+    my $type = $event->type;
+
+    given ($event->type) {
+        when (SDL_MOUSEMOTION) {
+            my ($x, $y) = ($event->motion_x, $event->motion_y);
+            #debug( "mouse motion \@$x,$y\n" );
+
+            # check which widget mouse is overing
+            my ($new) =
+                grep { $_->_pack_info->_slave_dims->collidepoint($x,$y) }
+                grep { $_->is_visible }
+                $self->_children;
+            $new //= $self; # no widget = over the toplevel container
+            my $old = $self->_mouse_over_widget;
+
+            if ( $new ne $old ) {
+                debug( "mouse leaving $old\n" );
+                debug( "mouse entering $new\n" );
+                $self->_set_mouse_over_widget($new);
+                $old->_on_mouse_leave($event) if $old->can("_on_mouse_leave");
+                $new->_on_mouse_enter($event) if $new->can("_on_mouse_enter");
+            }
+        }
+
+        when (SDL_MOUSEBUTTONDOWN) {
+            #debug( "mouse button down\n" );
+            my $curwidget = $self->_mouse_over_widget;
+            $curwidget->_on_mouse_down($event)
+                if $curwidget->can("_on_mouse_down");
+        }
+
+        when (SDL_MOUSEBUTTONUP) {
+            #debug( "mouse button up\n" );
+            my $curwidget = $self->_mouse_over_widget;
+            $curwidget->_on_mouse_up($event)
+                if $curwidget->can("_on_mouse_up");
+        }
+    }
+}
+
 
 #
 #    $toplevel->_recompute;
@@ -120,6 +186,16 @@ sub _recompute {
     my $app  = $self->app;
 
     debug( "recomputing $self\n" );
+
+    # first, clear all previous positionning
+    foreach my $c ( $self->_children ) {
+        my $pack = $self->_pack_info;
+        next unless defined $pack;
+        $pack->_clear_parcel;
+        $pack->_clear_slave_dims;
+        $pack->_clear_clip;
+    }
+
     my $cavity = SDLx::Rect->new( 0, 0, $app->w, $app->h );
     debug( "cavity is " . _rects($cavity) . "\n" );
 
@@ -177,10 +253,14 @@ sub _recompute {
         }
         $pack->_set_parcel( SDLx::Rect->new($px,$py,$pw,$ph) );
         $pack->_set_slave_dims( SDLx::Rect->new($px,$py,$childw,$childh) );
-        debug( "cavity is " . _rects($cavity) . "\n" );
+        debug( "parcel:     " . _rects($pack->_parcel) . "\n" );
+        debug( "slave dims: " . _rects($pack->_slave_dims) . "\n" );
+        debug( "cavity:     " . _rects($cavity) . "\n" );
     }
 }
 
+
+# -- private functions
 
 #
 # my $string = _rects( $rect );
