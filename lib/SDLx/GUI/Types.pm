@@ -6,7 +6,7 @@ package SDLx::GUI::Types;
 
 use Moose::Util::TypeConstraints;
 
-enum 'PackSide' => qw{ top bottom left right };
+enum 'PackSide' => [qw{ top bottom left right }];
 
 1;
 __END__
