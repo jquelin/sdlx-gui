@@ -121,41 +121,35 @@ sub _handle_event {
     my ($self, $event) = @_;
     my $type = $event->type;
 
-    given ($event->type) {
-        when (SDL_MOUSEMOTION) {
-            my ($x, $y) = ($event->motion_x, $event->motion_y);
-            #debug( "mouse motion \@$x,$y\n" );
+    if ( $type == SDL_MOUSEMOTION ) {
+        my ($x, $y) = ($event->motion_x, $event->motion_y);
+        #debug( "mouse motion \@$x,$y\n" );
 
-            # check which widget mouse is overing
-            my ($new) =
-                grep { $_->_pack_info->_slave_dims->collidepoint($x,$y) }
-                grep { $_->is_visible }
-                $self->_children;
-            $new //= $self; # no widget = over the toplevel container
-            my $old = $self->_mouse_over_widget;
+        # check which widget mouse is overing
+        my ($new) =
+            grep { $_->_pack_info->_slave_dims->collidepoint($x,$y) }
+            grep { $_->is_visible }
+            $self->_children;
+        $new //= $self; # no widget = over the toplevel container
+        my $old = $self->_mouse_over_widget;
 
-            if ( $new ne $old ) {
-                debug( "mouse leaving $old\n" );
-                debug( "mouse entering $new\n" );
-                $self->_set_mouse_over_widget($new);
-                $old->_on_mouse_leave($event) if $old->can("_on_mouse_leave");
-                $new->_on_mouse_enter($event) if $new->can("_on_mouse_enter");
-            }
+        if ( $new ne $old ) {
+            debug( "mouse leaving $old\n" );
+            debug( "mouse entering $new\n" );
+            $self->_set_mouse_over_widget($new);
+            $old->_on_mouse_leave($event) if $old->can("_on_mouse_leave");
+            $new->_on_mouse_enter($event) if $new->can("_on_mouse_enter");
         }
-
-        when (SDL_MOUSEBUTTONDOWN) {
-            #debug( "mouse button down\n" );
-            my $curwidget = $self->_mouse_over_widget;
-            $curwidget->_on_mouse_down($event)
-                if $curwidget->can("_on_mouse_down");
-        }
-
-        when (SDL_MOUSEBUTTONUP) {
-            #debug( "mouse button up\n" );
-            my $curwidget = $self->_mouse_over_widget;
-            $curwidget->_on_mouse_up($event)
-                if $curwidget->can("_on_mouse_up");
-        }
+    } elsif ( $type == SDL_MOUSEBUTTONDOWN ) {
+        #debug( "mouse button down\n" );
+        my $curwidget = $self->_mouse_over_widget;
+        $curwidget->_on_mouse_down($event)
+            if $curwidget->can("_on_mouse_down");
+    } elsif ( $type == SDL_MOUSEBUTTONUP ) {
+        #debug( "mouse button up\n" );
+        my $curwidget = $self->_mouse_over_widget;
+        $curwidget->_on_mouse_up($event)
+            if $curwidget->can("_on_mouse_up");
     }
 }
 
@@ -193,50 +187,49 @@ sub _recompute {
 
         debug( "child $child wants [$childw,$childh] at ".$pack->side. "\n" );
         my ($px, $py, $pw, $ph);
-        given ( $pack->side ) {
-            when ( "top" ) {
-                $pw = $cavity->w;
-                $ph = $childh;
-                $px = $cavity->x;
-                $py = $cavity->y;
-                $cavity = SDLx::Rect->new(
-                    $cavity->x, $cavity->y + $ph,
-                    $cavity->w, $cavity->h - $ph,
-                );
-            }
-            when ( "bottom" ) {
-                $pw = $cavity->w;
-                $ph = $childh;
-                $px = $cavity->x;
-                $py = $cavity->y + $cavity->h - $childh;
-                $cavity = SDLx::Rect->new(
-                    $cavity->x, $cavity->y,
-                    $cavity->w, $cavity->h - $ph,
-                );
-            }
-            when ( "left" ) {
-                $pw = $childw;
-                $ph = $cavity->h;
-                $px = $cavity->x;
-                $py = $cavity->y;
-                $cavity = SDLx::Rect->new(
-                    $cavity->x + $pw, $cavity->y,
-                    $cavity->w - $pw, $cavity->h,
-                );
-            }
-            when ( "right" ) {
-                $pw = $childw;
-                $ph = $cavity->h;
-                $px = $cavity->x + $cavity->w - $childw;
-                $py = $cavity->y;
-                $cavity = SDLx::Rect->new(
-                    $cavity->x,       $cavity->y,
-                    $cavity->w - $pw, $cavity->h,
-                );
-            }
-            default {
-                croak "uh? should not get there";
-            }
+        my $side = $pack->side;
+        if ( $side eq "top" ) {
+            $pw = $cavity->w;
+            $ph = $childh;
+            $px = $cavity->x;
+            $py = $cavity->y;
+            $cavity = SDLx::Rect->new(
+                $cavity->x, $cavity->y + $ph,
+                $cavity->w, $cavity->h - $ph,
+            );
+        }
+        elsif ( $side eq "bottom" ) {
+            $pw = $cavity->w;
+            $ph = $childh;
+            $px = $cavity->x;
+            $py = $cavity->y + $cavity->h - $childh;
+            $cavity = SDLx::Rect->new(
+                $cavity->x, $cavity->y,
+                $cavity->w, $cavity->h - $ph,
+            );
+        }
+        elsif ( $side eq "left" ) {
+            $pw = $childw;
+            $ph = $cavity->h;
+            $px = $cavity->x;
+            $py = $cavity->y;
+            $cavity = SDLx::Rect->new(
+                $cavity->x + $pw, $cavity->y,
+                $cavity->w - $pw, $cavity->h,
+            );
+        }
+        elsif ( $side eq "right" ) {
+            $pw = $childw;
+            $ph = $cavity->h;
+            $px = $cavity->x + $cavity->w - $childw;
+            $py = $cavity->y;
+            $cavity = SDLx::Rect->new(
+                $cavity->x,       $cavity->y,
+                $cavity->w - $pw, $cavity->h,
+            );
+        }
+        else {
+            croak "uh? should not get there";
         }
         $pack->_set_parcel( SDLx::Rect->new($px,$py,$pw,$ph) );
         $pack->_set_slave_dims( SDLx::Rect->new($px,$py,$childw,$childh) );
